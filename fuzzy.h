@@ -89,7 +89,7 @@ constexpr rank::rank_t TriFuzzyNum::calculate_rank(const real_t _l,
     const real_t z = (_u - _l) + std::sqrt(1 + (_u - _m) * (_u - _m))
                      + std::sqrt(1 + (_m - _l) * (_m - _l));
     const real_t x = ((_u - _l) * _m + std::sqrt(1 + (_u - _m) * (_u - _m))
-                                       * _l + std::sqrt(1 + (_m - _l) * (_m - _l)) * _u) / z;
+                       * _l + std::sqrt(1 + (_m - _l) * (_m - _l)) * _u) / z;
     const real_t y = (_u - _l) / z;
 
     return std::make_tuple(x - y / 2, 1 - y, _m);
@@ -124,12 +124,14 @@ constexpr TriFuzzyNum& TriFuzzyNum::operator-=(const TriFuzzyNum& that) {
 
     return *this;
 }
+
 constexpr TriFuzzyNum& TriFuzzyNum::operator/=(const real_t & that){
     l = l/that;
     m = m/that;
     u = u/that;
     return *this;
 }
+
 constexpr TriFuzzyNum& TriFuzzyNum::operator*=(const TriFuzzyNum& that) {
     l *= that.l;
     m *= that.m;
@@ -140,10 +142,11 @@ constexpr TriFuzzyNum& TriFuzzyNum::operator*=(const TriFuzzyNum& that) {
     order_numbers(l, m, u);
     return *this;
 }
-consteval TriFuzzyNum crisp_number(real_t v)
-{
+
+consteval TriFuzzyNum crisp_number(real_t v) {
     return TriFuzzyNum(v,v,v);
 }
+
 inline const constinit TriFuzzyNum crisp_zero = crisp_number(0);
 
 class TriFuzzyNumSet {
@@ -153,21 +156,20 @@ public :
     TriFuzzyNumSet(const TriFuzzyNumSet &that) = default;
     TriFuzzyNumSet(TriFuzzyNumSet &&that) = default;
     TriFuzzyNumSet() = default;
-    TriFuzzyNumSet &operator=(const TriFuzzyNumSet &t) = default;
-    TriFuzzyNumSet &operator=(TriFuzzyNumSet &&t) = default;
     TriFuzzyNumSet(initializer_list<TriFuzzyNum> list) {
         this->collection = list;
     }
 
+    TriFuzzyNumSet &operator=(const TriFuzzyNumSet &t) = default;
+    TriFuzzyNumSet &operator=(TriFuzzyNumSet &&t) = default;
 
     void insert(TriFuzzyNum &&number) {
-        collection.insert(std::move(number));
+        collection.insert(number);
     }
 
     void insert(const TriFuzzyNum &number) {
         collection.insert(number);
     }
-
 
     void remove(TriFuzzyNum &number) {
         auto itr = collection.find(number);
@@ -193,7 +195,8 @@ public :
             }
             return result/=counter;
         } else {
-            throw std::length_error("TriFuzzyNumSet::arithmetic_mean - the set is empty.");
+            throw std::length_error("TriFuzzyNumSet::arithmetic_mean - "
+                                    "the set is empty.");
         }
     }
 };
