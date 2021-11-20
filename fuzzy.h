@@ -162,7 +162,7 @@ public :
     TriFuzzyNumSet &operator=(TriFuzzyNumSet &&t) = default;
 
     void insert(TriFuzzyNum &&number) {
-        collection.insert(number);
+        collection.insert(std::move(number));
     }
 
     void insert(const TriFuzzyNum &number) {
