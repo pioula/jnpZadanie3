@@ -145,14 +145,14 @@ consteval TriFuzzyNum crisp_number(real_t v)
     return TriFuzzyNum(v,v,v);
 }
 inline const constinit TriFuzzyNum crisp_zero = crisp_number(0);
-class TriFuzzyNumSet {
-    multiset<TriFuzzyNum> collection;
 
+class TriFuzzyNumSet {
+private:
+    multiset<TriFuzzyNum> collection;
+public :
     TriFuzzyNumSet(const TriFuzzyNumSet &that) = default;
     TriFuzzyNumSet(TriFuzzyNumSet &&that) = default;
-
-
-public :
+    TriFuzzyNumSet() = default;
     TriFuzzyNumSet &operator=(const TriFuzzyNumSet &t) = default;
     TriFuzzyNumSet &operator=(TriFuzzyNumSet &&t) = default;
     TriFuzzyNumSet(initializer_list<TriFuzzyNum> list) {
@@ -193,7 +193,7 @@ public :
             }
             return result/=counter;
         } else {
-            throw std::length_error("TriFuzzyNumSet - the set is empty.");
+            throw std::length_error("TriFuzzyNumSet::arithmetic_mean - the set is empty.");
         }
     }
 };
