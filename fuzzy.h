@@ -156,9 +156,7 @@ public :
     TriFuzzyNumSet(const TriFuzzyNumSet &that) = default;
     TriFuzzyNumSet(TriFuzzyNumSet &&that) = default;
     TriFuzzyNumSet() = default;
-    TriFuzzyNumSet(initializer_list<TriFuzzyNum> list) {
-        this->collection = list;
-    }
+    TriFuzzyNumSet(initializer_list<TriFuzzyNum> list) : collection(list) {}
 
     TriFuzzyNumSet &operator=(const TriFuzzyNumSet &t) = default;
     TriFuzzyNumSet &operator=(TriFuzzyNumSet &&t) = default;
@@ -171,30 +169,25 @@ public :
         collection.insert(number);
     }
 
-    void remove(TriFuzzyNum &number) {
-        auto itr = collection.find(number);
-        if (itr != collection.end()) {
-            collection.erase(itr);
-        }
-    }
-
-    void remove(TriFuzzyNum &&number) {
-        auto itr = collection.find(number);
-        if (itr != collection.end()) {
-            collection.erase(itr);
-        }
+    void remove(const TriFuzzyNum &number) {
+        collection.erase(number);
     }
 
     TriFuzzyNum arithmetic_mean() {
         if (!collection.empty()) {
             real_t counter = 0;
             TriFuzzyNum result = crisp_zero;
+
             for (TriFuzzyNum i : collection) {
                 counter++;
                 result += i;
             }
-            return result/=counter;
-        } else {
+
+            counter = 1 / counter; //reciprocal
+            result *= TriFuzzyNum(counter, counter, counter);
+            return result;
+        }
+        else {
             throw std::length_error("TriFuzzyNumSet::arithmetic_mean - "
                                     "the set is empty.");
         }
