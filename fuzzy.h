@@ -10,40 +10,6 @@ namespace rank {
     using rank_t = std::tuple<real_t, real_t, real_t>;
 }
 
-/*
-To jest kod na obliczenie rank prz zminimalizowaniu używania temporaries
-x1 = u - l;
-
-real_t tmp2 = u - m;
-tmp2 *= tmp2;
-++tmp2;
-tmp2 = std::sqrt(tmp2);
-
-real_t tmp3 = m - l;
-tmp3 *= tmp3;
-++tmp3;
-tmp3 = std::sqrt(tmp3);
-
-real_t z = x1;
-z += tmp2;
-z += tmp3;
-
-x2 = x1;
-x2 /= z;
-x2 *= (-1);
-
-x1 *= m;
-tmp2 *= l;
-tmp3 *= u;
-
-x1 += tmp2;
-x1 += tmp3;
-x1 /= z; //x
-
-x1 += x2;
-++x2;
-x3 = m;*/
-
 class TriFuzzyNum {
 public:
     TriFuzzyNum() = delete;
@@ -61,7 +27,7 @@ public:
     }
 
     constexpr real_t upper_value() const {
-        return l;
+        return u;
     }
 
     constexpr TriFuzzyNum& operator=(const TriFuzzyNum& that) = default;
@@ -71,23 +37,28 @@ public:
     constexpr TriFuzzyNum& operator-=(const TriFuzzyNum& that);
     constexpr TriFuzzyNum& operator*=(const TriFuzzyNum& that);
 
-    constexpr  TriFuzzyNum operator+(const TriFuzzyNum &other) const {
+    const constexpr TriFuzzyNum operator+(const TriFuzzyNum &other) const {
         return TriFuzzyNum(*this) += other;
     }
 
-    constexpr  TriFuzzyNum operator-(const TriFuzzyNum &other) const {
+    const constexpr TriFuzzyNum operator-(const TriFuzzyNum &other) const {
         return TriFuzzyNum(*this) -= other;
     }
 
-    constexpr  TriFuzzyNum operator*(const TriFuzzyNum &other) const {
+    const constexpr TriFuzzyNum operator*(const TriFuzzyNum &other) const {
         return TriFuzzyNum(*this) *= other;
     }
 
     constexpr bool operator==(const TriFuzzyNum &other) const {
-        return calculate_rank(l, m, u) == calculate_rank(other.l, other.m, other.u);
+        //We can depend on default implementation of "==" for tuples as
+        //it compares lexicographicaly
+        return calculate_rank(l, m, u) ==
+                calculate_rank(other.l, other.m, other.u);
     }
 
     constexpr auto operator<=>(const TriFuzzyNum &other) const {
+        //We can depend on default implementation of "<=>" for tuples as
+        //it compares lexicographicaly
         return calculate_rank(l, m, u) <=>
             calculate_rank(other.l, other.m, other.u);
     }
@@ -104,16 +75,20 @@ private:
 
     static constexpr rank::rank_t calculate_rank(const real_t _l,
                                                  const real_t _m,
-                                                 const real_t _u) {
-        real_t z = (_u - _l) + std::sqrt(1 + (_u - _m) * (_u - _m))
-                   + std::sqrt(1 + (_m - _l) * (_m - _l));
-        real_t x = ((_u - _l) * _m + std::sqrt(1 + (_u - _m) * (_u - _m)) * _l
-                    + std::sqrt(1 + (_m - _l) * (_m - _l)) * _u) / z;
-        real_t y = (_u - _l) / z;
+                                                 const real_t _u);
+}; //TriFuzzyNum
 
-        return std::make_tuple(x - y / 2, 1 - y, _m);
-    }
-};
+constexpr rank::rank_t TriFuzzyNum::calculate_rank(const real_t _l,
+                                             const real_t _m,
+                                             const real_t _u) {
+    const real_t z = (_u - _l) + std::sqrt(1 + (_u - _m) * (_u - _m))
+                     + std::sqrt(1 + (_m - _l) * (_m - _l));
+    const real_t x = ((_u - _l) * _m + std::sqrt(1 + (_u - _m) * (_u - _m))
+                       * _l + std::sqrt(1 + (_m - _l) * (_m - _l)) * _u) / z;
+    const real_t y = (_u - _l) / z;
+
+    return std::make_tuple(x - y / 2, 1 - y, _m);
+}
 
 constexpr void TriFuzzyNum::order_numbers(real_t &a, real_t &b, real_t &c) {
     if (a > b)
@@ -124,11 +99,8 @@ constexpr void TriFuzzyNum::order_numbers(real_t &a, real_t &b, real_t &c) {
         std::swap(b, c);
 }
 
-constexpr TriFuzzyNum::TriFuzzyNum(real_t _l, real_t _m, real_t _u) {
-    l = _l;
-    m = _m;
-    u = _u;
-
+constexpr TriFuzzyNum::TriFuzzyNum(real_t _l, real_t _m, real_t _u)
+    : l(_l), m(_m), u(_u) {
     order_numbers(l, m, u);
 }
 
@@ -153,12 +125,10 @@ constexpr TriFuzzyNum& TriFuzzyNum::operator*=(const TriFuzzyNum& that) {
     m *= that.m;
     u *= that.u;
 
-    //trzeba uporządkować, bo
-    // psuje się dla -1 2 3 oraz -100 2 3 wtedy jest 100>4<9
+    //We have to order numbers again because of multiplication of numbers
+    //such as (-1, 2, 3) and (-100, 2, 3) which is (100, 4, 9)
     order_numbers(l, m, u);
     return *this;
 }
-
-
 
 #endif //FUZZY_H
